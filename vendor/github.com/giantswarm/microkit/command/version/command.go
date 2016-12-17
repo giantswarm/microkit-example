@@ -1,3 +1,4 @@
+// Package version implements the version command for any microservice.
 package version
 
 import (
@@ -5,6 +6,8 @@ import (
 	"runtime"
 
 	"github.com/spf13/cobra"
+
+	microerror "github.com/giantswarm/microkit/error"
 )
 
 // Config represents the configuration used to create a new version command.
@@ -34,52 +37,65 @@ func DefaultConfig() Config {
 func New(config Config) (Command, error) {
 	// Settings.
 	if config.Description == "" {
-		return nil, maskAnyf(invalidConfigError, "description commit must not be empty")
+		return nil, microerror.MaskAnyf(invalidConfigError, "description commit must not be empty")
 	}
 	if config.GitCommit == "" {
-		return nil, maskAnyf(invalidConfigError, "git commit must not be empty")
+		return nil, microerror.MaskAnyf(invalidConfigError, "git commit must not be empty")
 	}
 	if config.Name == "" {
-		return nil, maskAnyf(invalidConfigError, "name must not be empty")
+		return nil, microerror.MaskAnyf(invalidConfigError, "name must not be empty")
 	}
 	if config.ProjectVersion == "" {
-		return nil, maskAnyf(invalidConfigError, "project version must not be empty")
+		return nil, microerror.MaskAnyf(invalidConfigError, "project version must not be empty")
 	}
 	if config.Source == "" {
-		return nil, maskAnyf(invalidConfigError, "name must not be empty")
+		return nil, microerror.MaskAnyf(invalidConfigError, "name must not be empty")
 	}
 
 	newCommand := &command{
-		Config: config,
+		// Internals.
+		cobraCommand: nil,
+
+		// Settings.
+		description:    config.Description,
+		gitCommit:      config.GitCommit,
+		name:           config.Name,
+		projectVersion: config.ProjectVersion,
+		source:         config.Source,
+	}
+
+	newCommand.cobraCommand = &cobra.Command{
+		Use:   "version",
+		Short: "Show version information of the microservice.",
+		Long:  "Show version information of the microservice.",
+		Run:   newCommand.Execute,
 	}
 
 	return newCommand, nil
 }
 
-// command represents the version command.
 type command struct {
-	Config
+	// Internals.
+	cobraCommand *cobra.Command
+
+	// Settings.
+	description    string
+	gitCommit      string
+	name           string
+	projectVersion string
+	source         string
 }
 
-// Execute represents the cobra run method.
+func (c *command) CobraCommand() *cobra.Command {
+	return c.cobraCommand
+}
+
 func (c *command) Execute(cmd *cobra.Command, args []string) {
-	fmt.Printf("Description:        %s\n", c.Description)
-	fmt.Printf("Git Commit:         %s\n", c.GitCommit)
+	fmt.Printf("Description:        %s\n", c.description)
+	fmt.Printf("Git Commit:         %s\n", c.gitCommit)
 	fmt.Printf("Go Version:         %s\n", runtime.Version())
-	fmt.Printf("Name:               %s\n", c.Name)
+	fmt.Printf("Name:               %s\n", c.name)
 	fmt.Printf("OS / Arch:          %s / %s\n", runtime.GOOS, runtime.GOARCH)
-	fmt.Printf("Project Version:    %s\n", c.ProjectVersion)
-	fmt.Printf("Source:             %s\n", c.Source)
-}
-
-// New creates a new cobra command for the version command.
-func (c *command) New() *cobra.Command {
-	newCommand := &cobra.Command{
-		Use:   "version",
-		Short: "Show version information of the microservice.",
-		Long:  "Show version information of the microservice.",
-		Run:   c.Execute,
-	}
-
-	return newCommand
+	fmt.Printf("Project Version:    %s\n", c.projectVersion)
+	fmt.Printf("Source:             %s\n", c.source)
 }

@@ -1,3 +1,4 @@
+// Package command implements the root command for any microservice.
 package command
 
 import (
@@ -5,6 +6,7 @@ import (
 
 	"github.com/giantswarm/microkit/command/daemon"
 	"github.com/giantswarm/microkit/command/version"
+	microerror "github.com/giantswarm/microkit/error"
 	"github.com/giantswarm/microkit/logger"
 	"github.com/giantswarm/microkit/server"
 )
@@ -53,7 +55,7 @@ func New(config Config) (Command, error) {
 
 		daemonCommand, err = daemon.New(daemonConfig)
 		if err != nil {
-			return nil, maskAny(err)
+			return nil, microerror.MaskAny(err)
 		}
 	}
 
@@ -69,50 +71,48 @@ func New(config Config) (Command, error) {
 
 		versionCommand, err = version.New(versionConfig)
 		if err != nil {
-			return nil, maskAny(err)
+			return nil, microerror.MaskAny(err)
 		}
 	}
 
 	newCommand := &command{
-		// Dependencies.
-		DaemonCommand:  daemonCommand,
-		VersionCommand: versionCommand,
-
-		// Settings.
-		Name:        config.Name,
-		Description: config.Description,
+		// Internals.
+		cobraCommand:   nil,
+		daemonCommand:  daemonCommand,
+		versionCommand: versionCommand,
 	}
+
+	newCommand.cobraCommand = &cobra.Command{
+		Use:   config.Name,
+		Short: config.Description,
+		Long:  config.Description,
+		Run:   newCommand.Execute,
+	}
+	newCommand.cobraCommand.AddCommand(newCommand.daemonCommand.CobraCommand())
+	newCommand.cobraCommand.AddCommand(newCommand.versionCommand.CobraCommand())
 
 	return newCommand, nil
 }
 
-// command represents the root command.
 type command struct {
-	// Dependencies.
-	DaemonCommand  daemon.Command
-	VersionCommand version.Command
-
-	// Settings.
-	Name        string
-	Description string
+	// Internals.
+	cobraCommand   *cobra.Command
+	daemonCommand  daemon.Command
+	versionCommand version.Command
 }
 
-// Execute represents the cobra run method.
+func (c *command) CobraCommand() *cobra.Command {
+	return c.cobraCommand
+}
+
+func (c *command) DaemonCommand() daemon.Command {
+	return c.daemonCommand
+}
+
 func (c *command) Execute(cmd *cobra.Command, args []string) {
 	cmd.HelpFunc()(cmd, nil)
 }
 
-// New creates a new cobra command for the root command.
-func (c *command) New() *cobra.Command {
-	newCommand := &cobra.Command{
-		Use:   c.Name,
-		Short: c.Description,
-		Long:  c.Description,
-		Run:   c.Execute,
-	}
-
-	newCommand.AddCommand(c.DaemonCommand.New())
-	newCommand.AddCommand(c.VersionCommand.New())
-
-	return newCommand
+func (c *command) VersionCommand() version.Command {
+	return c.versionCommand
 }
