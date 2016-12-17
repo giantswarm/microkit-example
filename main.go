@@ -91,5 +91,5 @@ func main() {
 		}
 	}
 
-	newCommand.New().Execute()
+	newCommand.CobraCommand().Execute()
 }
