@@ -1,8 +1,6 @@
 package main
 
 import (
-	"fmt"
-
 	"github.com/giantswarm/microkit/command"
 	"github.com/giantswarm/microkit/logger"
 	microserver "github.com/giantswarm/microkit/server"
@@ -86,7 +84,6 @@ func main() {
 
 		newCommand, err = command.New(commandConfig)
 		if err != nil {
-			fmt.Printf("%#v\n", err)
 			panic(err)
 		}
 	}
