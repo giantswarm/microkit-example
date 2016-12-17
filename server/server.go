@@ -33,14 +33,6 @@ func DefaultConfig() Config {
 
 // New creates a new configured server object.
 func New(config Config) (microserver.Server, error) {
-	// Dependencies.
-	if config.Logger == nil {
-		return nil, maskAnyf(invalidConfigError, "logger must not be empty")
-	}
-	if config.Service == nil {
-		return nil, maskAnyf(invalidConfigError, "service must not be empty")
-	}
-
 	var err error
 
 	var middlewareCollection *middleware.Middleware
