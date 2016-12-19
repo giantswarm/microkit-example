@@ -3,6 +3,8 @@
 package server
 
 import (
+	"encoding/json"
+	"fmt"
 	"net/http"
 	"net/url"
 	"strconv"
@@ -11,13 +13,13 @@ import (
 	"time"
 
 	kitendpoint "github.com/go-kit/kit/endpoint"
-	kitlog "github.com/go-kit/kit/log"
 	kithttp "github.com/go-kit/kit/transport/http"
 	"github.com/gorilla/mux"
 	"github.com/prometheus/client_golang/prometheus/promhttp"
 	"github.com/tylerb/graceful"
 	"golang.org/x/net/context"
 
+	microerror "github.com/giantswarm/microkit/error"
 	"github.com/giantswarm/microkit/logger"
 )
 
@@ -52,37 +54,35 @@ func DefaultConfig() Config {
 func New(config Config) (Server, error) {
 	// Dependencies.
 	if config.Endpoints == nil {
-		return nil, maskAnyf(invalidConfigError, "endpoints must not be empty")
+		return nil, microerror.MaskAnyf(invalidConfigError, "endpoints must not be empty")
 	}
 	if config.ErrorEncoder == nil {
-		return nil, maskAnyf(invalidConfigError, "error encoder must not be empty")
+		return nil, microerror.MaskAnyf(invalidConfigError, "error encoder must not be empty")
 	}
 	if config.Logger == nil {
-		return nil, maskAnyf(invalidConfigError, "logger must not be empty")
+		return nil, microerror.MaskAnyf(invalidConfigError, "logger must not be empty")
 	}
 	if config.RequestFuncs == nil {
-		return nil, maskAnyf(invalidConfigError, "request funcs must not be empty")
+		return nil, microerror.MaskAnyf(invalidConfigError, "request funcs must not be empty")
 	}
 
 	// Settings.
 	if config.ListenAddress == "" {
-		return nil, maskAnyf(invalidConfigError, "listen address must not be empty")
+		return nil, microerror.MaskAnyf(invalidConfigError, "listen address must not be empty")
 	}
 
 	listenURL, err := url.Parse(config.ListenAddress)
 	if err != nil {
-		return nil, maskAnyf(invalidConfigError, err.Error())
+		return nil, microerror.MaskAnyf(invalidConfigError, err.Error())
 	}
 
 	newServer := &server{
-		Config: config,
-
 		bootOnce:     sync.Once{},
 		endpoints:    config.Endpoints,
 		errorEncoder: config.ErrorEncoder,
 		httpServer:   nil,
 		listenURL:    listenURL,
-		logger:       kitlog.NewContext(config.Logger).With("package", "server"),
+		logger:       config.Logger,
 		requestFuncs: config.RequestFuncs,
 		shutdownOnce: sync.Once{},
 	}
@@ -92,8 +92,6 @@ func New(config Config) (Server, error) {
 
 // server manages the transport logic and endpoint registration.
 type server struct {
-	Config
-
 	bootOnce     sync.Once
 	endpoints    []Endpoint
 	errorEncoder kithttp.ErrorEncoder
@@ -104,8 +102,6 @@ type server struct {
 	shutdownOnce sync.Once
 }
 
-// Boot registers the configured endpoints and starts the server under the
-// configured address.
 func (s *server) Boot() {
 	s.bootOnce.Do(func() {
 		handler := s.NewRouter()
@@ -138,7 +134,16 @@ func (s *server) Endpoints() []Endpoint {
 }
 
 func (s *server) ErrorEncoder() kithttp.ErrorEncoder {
-	return s.errorEncoder
+	return func(ctx context.Context, err error, w http.ResponseWriter) {
+		s.errorEncoder(ctx, err, w)
+
+		s.logger.Log("error", fmt.Sprintf("%#v", err))
+
+		w.Header().Set("Content-Type", "application/json; charset=utf-8")
+		json.NewEncoder(w).Encode(map[string]interface{}{
+			"error": err.Error(),
+		})
+	}
 }
 
 // NewRouter returns a HTTP handler for the server. Here we register all
@@ -206,6 +211,8 @@ func (s *server) NewRouter() *mux.Router {
 			// When it is executed we know all necessary information to instrument the
 			// complete request, including its response status code.
 			defer func(t time.Time) {
+				s.logger.Log("code", endpointCode, "endpoint", endpointName, "method", endpointMethod, "path", r.URL.Path)
+
 				// At the time this code is executed the status code is properly set. So
 				// we can use it for our instrumentation.
 				endpointCode := strconv.Itoa(endpointCode)
