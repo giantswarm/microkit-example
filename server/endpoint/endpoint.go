@@ -1,7 +1,7 @@
 package endpoint
 
 import (
-	kitlog "github.com/go-kit/kit/log"
+	micrologger "github.com/giantswarm/microkit/logger"
 
 	"github.com/giantswarm/microkit-example/server/endpoint/version"
 	"github.com/giantswarm/microkit-example/server/middleware"
@@ -11,7 +11,7 @@ import (
 // Config represents the configuration used to create a endpoint.
 type Config struct {
 	// Dependencies.
-	Logger     kitlog.Logger
+	Logger     micrologger.Logger
 	Middleware *middleware.Middleware
 	Service    *service.Service
 }
