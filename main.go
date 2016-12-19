@@ -1,7 +1,7 @@
 package main
 
 import (
-	"fmt"
+	"os"
 
 	"github.com/giantswarm/microkit/command"
 	"github.com/giantswarm/microkit/logger"
@@ -25,7 +25,9 @@ func main() {
 	// Create a new logger which is used by all packages.
 	var newLogger logger.Logger
 	{
-		newLogger, err = logger.New(logger.DefaultConfig())
+		loggerConfig := logger.DefaultConfig()
+		loggerConfig.IOWriter = os.Stdout
+		newLogger, err = logger.New(loggerConfig)
 		if err != nil {
 			panic(err)
 		}
@@ -86,10 +88,9 @@ func main() {
 
 		newCommand, err = command.New(commandConfig)
 		if err != nil {
-			fmt.Printf("%#v\n", err)
 			panic(err)
 		}
 	}
 
-	newCommand.New().Execute()
+	newCommand.CobraCommand().Execute()
 }
