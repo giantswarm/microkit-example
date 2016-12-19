@@ -3,6 +3,7 @@ package server
 import (
 	"encoding/json"
 	"net/http"
+	"sync"
 
 	micrologger "github.com/giantswarm/microkit/logger"
 	microserver "github.com/giantswarm/microkit/server"
@@ -33,14 +34,6 @@ func DefaultConfig() Config {
 
 // New creates a new configured server object.
 func New(config Config) (microserver.Server, error) {
-	// Dependencies.
-	if config.Logger == nil {
-		return nil, maskAnyf(invalidConfigError, "logger must not be empty")
-	}
-	if config.Service == nil {
-		return nil, maskAnyf(invalidConfigError, "service must not be empty")
-	}
-
 	var err error
 
 	var middlewareCollection *middleware.Middleware
@@ -67,10 +60,15 @@ func New(config Config) (microserver.Server, error) {
 	}
 
 	newServer := &server{
+		// Dependencies.
 		endpoints: []microserver.Endpoint{
 			endpointCollection.Version,
 		},
 		logger: config.Logger,
+
+		// Internals.
+		bootOnce:     sync.Once{},
+		shutdownOnce: sync.Once{},
 	}
 
 	return newServer, nil
@@ -78,13 +76,20 @@ func New(config Config) (microserver.Server, error) {
 
 // server manages the transport logic and endpoint registration.
 type server struct {
+	// Dependencies.
 	endpoints []microserver.Endpoint
 	logger    micrologger.Logger
+
+	// Internals.
+	bootOnce     sync.Once
+	shutdownOnce sync.Once
 }
 
 func (s *server) Boot() {
-	// Here goes your custom boot logic for your server/endpoint/middleware, if
-	// any.
+	s.bootOnce.Do(func() {
+		// Here goes your custom boot logic for your server/endpoint/middleware, if
+		// any.
+	})
 }
 
 func (s *server) Endpoints() []microserver.Endpoint {
@@ -135,6 +140,8 @@ func (s *server) RequestFuncs() []kithttp.RequestFunc {
 }
 
 func (s *server) Shutdown() {
-	// Here goes your custom shutdown logic for your server/endpoint/middleware,
-	// if any.
+	s.shutdownOnce.Do(func() {
+		// Here goes your custom shutdown logic for your server/endpoint/middleware,
+		// if any.
+	})
 }

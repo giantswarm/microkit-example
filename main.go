@@ -1,7 +1,6 @@
 package main
 
 import (
-	"fmt"
 	"os"
 
 	"github.com/giantswarm/microkit/command"
@@ -89,7 +88,6 @@ func main() {
 
 		newCommand, err = command.New(commandConfig)
 		if err != nil {
-			fmt.Printf("%#v\n", err)
 			panic(err)
 		}
 	}
