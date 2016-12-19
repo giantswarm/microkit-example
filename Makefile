@@ -3,7 +3,6 @@
 
 
 GIT_COMMIT := $(shell git rev-parse --short HEAD)
-PROJECT_VERSION=$(shell cat VERSION)
 
 
 
@@ -14,6 +13,5 @@ microkit-example:
 		-o microkit-example \
 		-ldflags " \
 			-X main.gitCommit=$(GIT_COMMIT) \
-			-X main.projectVersion=$(PROJECT_VERSION) \
 		" \
 		.
