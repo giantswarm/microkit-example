@@ -93,7 +93,6 @@ func (e *Endpoint) Endpoint() kitendpoint.Endpoint {
 		response.GoVersion = serviceResponse.GoVersion
 		response.Name = serviceResponse.Name
 		response.OSArch = serviceResponse.OSArch
-		response.ProjectVersion = serviceResponse.ProjectVersion
 		response.Source = serviceResponse.Source
 
 		return response, nil

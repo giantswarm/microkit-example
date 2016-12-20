@@ -12,11 +12,10 @@ type Config struct {
 	Logger micrologger.Logger
 
 	// Settings.
-	Description    string
-	GitCommit      string
-	Name           string
-	ProjectVersion string
-	Source         string
+	Description string
+	GitCommit   string
+	Name        string
+	Source      string
 }
 
 // DefaultConfig provides a default configuration to create a new version service
@@ -27,11 +26,10 @@ func DefaultConfig() Config {
 		Logger: nil,
 
 		// Settings.
-		Description:    "",
-		GitCommit:      "",
-		Name:           "",
-		ProjectVersion: "",
-		Source:         "",
+		Description: "",
+		GitCommit:   "",
+		Name:        "",
+		Source:      "",
 	}
 }
 
@@ -51,9 +49,6 @@ func New(config Config) (*Service, error) {
 	}
 	if config.Name == "" {
 		return nil, maskAnyf(invalidConfigError, "name must not be empty")
-	}
-	if config.ProjectVersion == "" {
-		return nil, maskAnyf(invalidConfigError, "project version must not be empty")
 	}
 	if config.Source == "" {
 		return nil, maskAnyf(invalidConfigError, "name must not be empty")
@@ -76,8 +71,6 @@ type Service struct {
 }
 
 func (s *Service) Get(request Request) (*Response, error) {
-	s.Logger.Log("func", "Get")
-
 	response := DefaultResponse()
 
 	response.Description = s.Description
@@ -85,7 +78,6 @@ func (s *Service) Get(request Request) (*Response, error) {
 	response.GoVersion = runtime.Version()
 	response.Name = s.Name
 	response.OSArch = runtime.GOOS + "/" + runtime.GOARCH
-	response.ProjectVersion = s.ProjectVersion
 	response.Source = s.Source
 
 	return response, nil
