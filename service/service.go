@@ -13,11 +13,10 @@ type Config struct {
 	Logger kitlog.Logger
 
 	// Settings.
-	Description    string
-	GitCommit      string
-	Name           string
-	ProjectVersion string
-	Source         string
+	Description string
+	GitCommit   string
+	Name        string
+	Source      string
 }
 
 // DefaultConfig provides a default configuration to create a new service by
@@ -28,11 +27,10 @@ func DefaultConfig() Config {
 		Logger: nil,
 
 		// Settings.
-		Description:    "",
-		GitCommit:      "",
-		Name:           "",
-		ProjectVersion: "",
-		Source:         "",
+		Description: "",
+		GitCommit:   "",
+		Name:        "",
+		Source:      "",
 	}
 }
 
@@ -49,7 +47,6 @@ func New(config Config) (*Service, error) {
 		versionConfig.Description = config.Description
 		versionConfig.GitCommit = config.GitCommit
 		versionConfig.Name = config.Name
-		versionConfig.ProjectVersion = config.ProjectVersion
 		versionConfig.Source = config.Source
 
 		versionService, err = version.New(versionConfig)

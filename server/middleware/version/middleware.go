@@ -48,10 +48,8 @@ type Middleware struct {
 
 func (m *Middleware) Middleware(next kitendpoint.Endpoint) kitendpoint.Endpoint {
 	return func(ctx context.Context, request interface{}) (interface{}, error) {
-		m.Logger.Log(
-			"msg", "version middleware was called",
-			"fixme", "I do useless shit",
-		)
+
+		// Your middleware logic goes here.
 
 		return next(ctx, request)
 	}
