@@ -19,4 +19,4 @@ dependencies:
 test:
     override:
         - cd $GS_WD && go test -v $(glide novendor)
-        - cd $GS_WD && go build -a -v -tags netgo -ldflags "-w -X main.gitCommit=$(git rev-parse --short HEAD) -X main.projectVersion=$(cat VERSION)"
+        - cd $GS_WD && go build -a -v -tags netgo -ldflags "-w -X main.gitCommit=$(git rev-parse --short HEAD)"
