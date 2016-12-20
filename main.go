@@ -12,11 +12,10 @@ import (
 )
 
 var (
-	description    string = "This is an example microservice using the microkit framework."
-	gitCommit      string = "n/a"
-	name           string = "microkit-example"
-	projectVersion string = "n/a"
-	source         string = "https://github.com/giantswarm/microkit-example"
+	description string = "This is an example microservice using the microkit framework."
+	gitCommit   string = "n/a"
+	name        string = "microkit-example"
+	source      string = "https://github.com/giantswarm/microkit-example"
 )
 
 func main() {
@@ -46,7 +45,6 @@ func main() {
 			serviceConfig.Description = description
 			serviceConfig.GitCommit = gitCommit
 			serviceConfig.Name = name
-			serviceConfig.ProjectVersion = projectVersion
 			serviceConfig.Source = source
 
 			newService, err = service.New(serviceConfig)
@@ -83,7 +81,6 @@ func main() {
 		commandConfig.Description = description
 		commandConfig.GitCommit = gitCommit
 		commandConfig.Name = name
-		commandConfig.ProjectVersion = projectVersion
 		commandConfig.Source = source
 
 		newCommand, err = command.New(commandConfig)
