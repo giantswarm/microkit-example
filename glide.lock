@@ -1,5 +1,5 @@
 hash: 02b6295037e9fbf33c776dceb1ea0dbfcc22fb048e5b24e3705cd826feab7c64
-updated: 2016-12-17T23:01:16.27983464+01:00
+updated: 2016-12-20T12:53:44.741854022+01:00
 imports:
 - name: github.com/beorn7/perks
   version: 4c0e84591b9aa9e6dcfdf3e020114cd81f89d5f9
@@ -8,7 +8,7 @@ imports:
 - name: github.com/fsnotify/fsnotify
   version: fd9ec7deca8bf46ecd2a795baaacf2b3a9be1197
 - name: github.com/giantswarm/microkit
-  version: 91fa23ed8924b84c4ea447e1cdc1dcf7bf5f5f42
+  version: 93622d2b9d5456ab3d070ef6719c88b390eac8b2
   subpackages:
   - command
   - command/daemon
@@ -73,7 +73,7 @@ imports:
   subpackages:
   - go
 - name: github.com/prometheus/common
-  version: 195bde7883f7c39ea62b0d92ab7359b5327065cb
+  version: ad540c5ab198ab0c5172f5c6b602a49ab911b5ef
   subpackages:
   - expfmt
   - internal/bitbucket.org/ww/goautoneg
@@ -91,7 +91,7 @@ imports:
 - name: github.com/spf13/jwalterweatherman
   version: 33c24e77fb80341fe7130ee7c594256ff08ccc46
 - name: github.com/spf13/pflag
-  version: c7e63cf4530bcd3ba943729cee0efeff2ebea63f
+  version: 5ccb023bc27df288a957c5e994cd44fd19619465
 - name: github.com/spf13/viper
   version: 5ed0fc31f7f453625df314d8e66b9791e8d13003
 - name: github.com/tylerb/graceful
