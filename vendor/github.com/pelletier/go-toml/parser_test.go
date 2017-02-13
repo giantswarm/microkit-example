@@ -283,6 +283,17 @@ func TestArrayNested(t *testing.T) {
 	})
 }
 
+func TestNestedArrayComment(t *testing.T) {
+	tree, err := Load(`
+someArray = [
+# does not work
+["entry1"]
+]`)
+	assertTree(t, tree, err, map[string]interface{}{
+		"someArray": [][]string{{"entry1"}},
+	})
+}
+
 func TestNestedEmptyArrays(t *testing.T) {
 	tree, err := Load("a = [[[]]]")
 	assertTree(t, tree, err, map[string]interface{}{
@@ -662,7 +673,10 @@ func TestToString(t *testing.T) {
 		t.Errorf("Test failed to parse: %v", err)
 		return
 	}
-	result := tree.ToString()
+	result, err := tree.ToString()
+	if err != nil {
+		t.Errorf("Unexpected error: %s", err)
+	}
 	expected := "\n[foo]\n\n  [[foo.bar]]\n    a = 42\n\n  [[foo.bar]]\n    a = 69\n"
 	if result != expected {
 		t.Errorf("Expected got '%s', expected '%s'", result, expected)
