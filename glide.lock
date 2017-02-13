@@ -1,5 +1,5 @@
-hash: 19da5bdee2d14297d5d58b3aeefe91b6ccf4ee7d6dac1ffdece57d66b2271bc4
-updated: 2017-02-13T17:19:54.95474273+01:00
+hash: 3b00033b3498c8e53715a5ba699d13890173f5d9025378edde58b02ddf996274
+updated: 2017-02-13T17:56:40.603458413+01:00
 imports:
 - name: github.com/beorn7/perks
   version: 4c0e84591b9aa9e6dcfdf3e020114cd81f89d5f9
@@ -22,7 +22,7 @@ imports:
 - name: github.com/ghodss/yaml
   version: 73d445a93680fa1a78ae23a5839bad48f32ba1ee
 - name: github.com/giantswarm/microkit
-  version: dc5154b71811757c1f1304c9c5a82e5a3a05d41e
+  version: 08b53abfc6634477447cbc094c1317c87871876c
   subpackages:
   - command
   - command/daemon
