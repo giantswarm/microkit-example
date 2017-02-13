@@ -1,6 +1,7 @@
 package server
 
 import (
+	"bytes"
 	"net/http"
 
 	kitendpoint "github.com/go-kit/kit/endpoint"
@@ -39,25 +40,47 @@ type Server interface {
 	// Boot registers the configured endpoints and starts the server under the
 	// configured address.
 	Boot()
-	// Endpoints returns the server's configured list of endpoints. These are the
-	// custom endpoints configured by the client.
-	Endpoints() []Endpoint
-	// ErrorEncoder returns the server's error encoder. This wraps the error
-	// encoder configured by the client. Clients should not implement error
-	// logging in here them self. This is done by the server itself. Clients must
-	// not implement error response writing them self. This is done by the server
-	// itself. Duplicated response writing will lead to runtime panics.
-	ErrorEncoder() kithttp.ErrorEncoder
-	// RequestFuncs returns the server's configured list of request functions.
-	// These are the custom request functions configured by the client.
-	RequestFuncs() []kithttp.RequestFunc
+	// Config returns the servers configuration as given by the client.
+	Config() Config
 	// Shutdown stops the running server gracefully.
 	Shutdown()
+}
+
+// ResponseError is a wrapper for errors passed to the client's error encoder to
+// propagate specific response information in error cases.
+type ResponseError interface {
+	// Code returns the code being tracked using SetCode. If this code is not set
+	// using SetCode it defaults to CodeUnknownError.
+	Code() string
+	// Error returns the message of the underlying error.
+	Error() string
+	// Message returns the message being tracked using SetMessage. If this message
+	// is not set using SetMessage it defaults to the error message of the
+	// underlying error.
+	Message() string
+	// IsEndpoint checks whether the underlying error originates from an endpoints
+	// business logic. This includes decoder and encoder errors. In case
+	// IsEndpoint returns false, something unexpected happened and the current
+	// error should probably be handled as internal server error.
+	IsEndpoint() bool
+	// SetCode tracks the given response code for the current response error. The
+	// given response code will be used for logging, instrumentation and response
+	// creation.
+	SetCode(code string)
+	// SetMessage tracks the given response message for the current response
+	// error. The given response message will be used for response creation.
+	SetMessage(message string)
+	// Underlying returns the actual underlying error, which is expected to be of
+	// type kithttp.Error.
+	Underlying() error
 }
 
 // ResponseWriter is a wrapper for http.ResponseWriter to track the written
 // status code.
 type ResponseWriter interface {
+	// BodyBuffer returns the buffer which is used to track the bytes being
+	// written to the response.
+	BodyBuffer() *bytes.Buffer
 	// Header is only a wrapper around http.ResponseWriter.Header.
 	Header() http.Header
 	// StatusCode returns either the default status code of the one that was

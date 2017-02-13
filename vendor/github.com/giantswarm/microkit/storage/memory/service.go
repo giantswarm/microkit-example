@@ -2,7 +2,10 @@
 package memory
 
 import (
+	"strings"
 	"sync"
+
+	"golang.org/x/net/context"
 
 	microerror "github.com/giantswarm/microkit/error"
 )
@@ -34,7 +37,7 @@ type Service struct {
 	mutex   sync.Mutex
 }
 
-func (s *Service) Create(key, value string) error {
+func (s *Service) Create(ctx context.Context, key, value string) error {
 	s.mutex.Lock()
 	defer s.mutex.Unlock()
 
@@ -43,7 +46,7 @@ func (s *Service) Create(key, value string) error {
 	return nil
 }
 
-func (s *Service) Delete(key string) error {
+func (s *Service) Delete(ctx context.Context, key string) error {
 	s.mutex.Lock()
 	defer s.mutex.Unlock()
 
@@ -52,7 +55,7 @@ func (s *Service) Delete(key string) error {
 	return nil
 }
 
-func (s *Service) Exists(key string) (bool, error) {
+func (s *Service) Exists(ctx context.Context, key string) (bool, error) {
 	s.mutex.Lock()
 	defer s.mutex.Unlock()
 
@@ -61,7 +64,39 @@ func (s *Service) Exists(key string) (bool, error) {
 	return ok, nil
 }
 
-func (s *Service) Search(key string) (string, error) {
+func (s *Service) List(ctx context.Context, key string) ([]string, error) {
+	s.mutex.Lock()
+	defer s.mutex.Unlock()
+
+	var list []string
+
+	i := len(key)
+	for k, _ := range s.storage {
+		if len(k) <= i+1 {
+			continue
+		}
+		if !strings.HasPrefix(k, key) {
+			continue
+		}
+
+		if k[i] != '/' {
+			// We want to ignore all keys that are not separated by slash. When there
+			// is a key stored like "foo/bar/baz", listing keys using "foo/ba" should
+			// not succeed.
+			continue
+		}
+
+		list = append(list, k[i+1:])
+	}
+
+	if len(list) == 0 {
+		return nil, microerror.MaskAnyf(notFoundError, key)
+	}
+
+	return list, nil
+}
+
+func (s *Service) Search(ctx context.Context, key string) (string, error) {
 	s.mutex.Lock()
 	defer s.mutex.Unlock()
 
@@ -70,5 +105,5 @@ func (s *Service) Search(key string) (string, error) {
 		return value, nil
 	}
 
-	return "", microerror.MaskAnyf(keyNotFoundError, key)
+	return "", microerror.MaskAnyf(notFoundError, key)
 }

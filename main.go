@@ -58,7 +58,7 @@ func main() {
 		{
 			serverConfig := server.DefaultConfig()
 
-			serverConfig.Logger = newLogger
+			serverConfig.MicroServerConfig.Logger = newLogger
 			serverConfig.Service = newService
 
 			newServer, err = server.New(serverConfig)

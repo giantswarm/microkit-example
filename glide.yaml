@@ -1,6 +1,7 @@
 package: github.com/giantswarm/microkit-example
 import:
 - package: github.com/giantswarm/microkit
+  version: 08b53abfc6634477447cbc094c1317c87871876c
   subpackages:
   - command
   - logger

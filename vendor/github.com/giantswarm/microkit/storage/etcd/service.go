@@ -2,7 +2,9 @@
 package etcd
 
 import (
-	"github.com/coreos/etcd/client"
+	"path/filepath"
+
+	"github.com/coreos/etcd/clientv3"
 	"golang.org/x/net/context"
 
 	microerror "github.com/giantswarm/microkit/error"
@@ -11,17 +13,19 @@ import (
 // Config represents the configuration used to create a etcd service.
 type Config struct {
 	// Dependencies.
-	EtcdClient client.Client
+	EtcdClient *clientv3.Client
+
+	// Settings.
+	Prefix string
 }
 
 // DefaultConfig provides a default configuration to create a new etcd service
 // by best effort.
 func DefaultConfig() Config {
-	etcdConfig := client.Config{
+	etcdConfig := clientv3.Config{
 		Endpoints: []string{"http://127.0.0.1:2379"},
-		Transport: client.DefaultTransport,
 	}
-	etcdClient, err := client.New(etcdConfig)
+	etcdClient, err := clientv3.New(etcdConfig)
 	if err != nil {
 		panic(err)
 	}
@@ -29,6 +33,9 @@ func DefaultConfig() Config {
 	return Config{
 		// Dependencies.
 		EtcdClient: etcdClient,
+
+		// Settings.
+		Prefix: "",
 	}
 }
 
@@ -44,7 +51,10 @@ func New(config Config) (*Service, error) {
 		etcdClient: config.EtcdClient,
 
 		// Internals.
-		keyClient: client.NewKeysAPI(config.EtcdClient),
+		keyClient: clientv3.NewKV(config.EtcdClient),
+
+		// Settings.
+		prefix: config.Prefix,
 	}
 
 	return newService, nil
@@ -53,14 +63,19 @@ func New(config Config) (*Service, error) {
 // Service is the etcd service.
 type Service struct {
 	// Dependencies.
-	etcdClient client.Client
+	etcdClient *clientv3.Client
 
 	// Internals.
-	keyClient client.KeysAPI
+	keyClient clientv3.KV
+
+	// Settings.
+	prefix string
 }
 
-func (s *Service) Create(key, value string) error {
-	_, err := s.keyClient.Create(context.TODO(), key, value)
+func (s *Service) Create(ctx context.Context, key, value string) error {
+	key = s.key(key)
+
+	_, err := s.keyClient.Put(ctx, key, value)
 	if err != nil {
 		return microerror.MaskAny(err)
 	}
@@ -68,11 +83,10 @@ func (s *Service) Create(key, value string) error {
 	return nil
 }
 
-func (s *Service) Delete(key string) error {
-	options := &client.DeleteOptions{
-		Recursive: true,
-	}
-	_, err := s.keyClient.Delete(context.TODO(), key, options)
+func (s *Service) Delete(ctx context.Context, key string) error {
+	key = s.key(key)
+
+	_, err := s.keyClient.Delete(ctx, key)
 	if err != nil {
 		return microerror.MaskAny(err)
 	}
@@ -80,12 +94,9 @@ func (s *Service) Delete(key string) error {
 	return nil
 }
 
-func (s *Service) Exists(key string) (bool, error) {
-	options := &client.GetOptions{
-		Quorum: true,
-	}
-	_, err := s.keyClient.Get(context.TODO(), key, options)
-	if client.IsKeyNotFound(err) {
+func (s *Service) Exists(ctx context.Context, key string) (bool, error) {
+	_, err := s.Search(ctx, key)
+	if IsNotFound(err) {
 		return false, nil
 	} else if err != nil {
 		return false, microerror.MaskAny(err)
@@ -94,16 +105,66 @@ func (s *Service) Exists(key string) (bool, error) {
 	return true, nil
 }
 
-func (s *Service) Search(key string) (string, error) {
-	options := &client.GetOptions{
-		Quorum: true,
+func (s *Service) List(ctx context.Context, key string) ([]string, error) {
+	opts := []clientv3.OpOption{
+		clientv3.WithKeysOnly(),
+		clientv3.WithPrefix(),
 	}
-	clientResponse, err := s.keyClient.Get(context.TODO(), key, options)
-	if client.IsKeyNotFound(err) {
-		return "", microerror.MaskAnyf(keyNotFoundError, key)
-	} else if err != nil {
+
+	key = s.key(key)
+	res, err := s.keyClient.Get(ctx, key, opts...)
+	if err != nil {
+		return nil, microerror.MaskAny(err)
+	}
+
+	if res.Count == 0 {
+		return nil, microerror.MaskAnyf(notFoundError, key)
+	}
+
+	var list []string
+
+	i := len(key)
+	for _, kv := range res.Kvs {
+		k := string(kv.Key)
+
+		if len(k) <= i+1 {
+			continue
+		}
+
+		if k[i] != '/' {
+			// We want to ignore all keys that are not separated by slash. When there
+			// is a key stored like "foo/bar/baz", listing keys using "foo/ba" should
+			// not succeed.
+			continue
+		}
+
+		list = append(list, k[i+1:])
+	}
+
+	if len(list) == 0 {
+		return nil, microerror.MaskAnyf(notFoundError, key)
+	}
+
+	return list, nil
+}
+
+func (s *Service) Search(ctx context.Context, key string) (string, error) {
+	res, err := s.keyClient.Get(ctx, s.key(key))
+	if err != nil {
 		return "", microerror.MaskAny(err)
 	}
 
-	return clientResponse.Node.Value, nil
+	if res.Count == 0 {
+		return "", microerror.MaskAnyf(notFoundError, key)
+	}
+
+	if res.Count > 1 {
+		return "", microerror.MaskAnyf(multipleValuesError, key)
+	}
+
+	return string(res.Kvs[0].Value), nil
+}
+
+func (s *Service) key(key string) string {
+	return filepath.Clean(filepath.Join("/", s.prefix, key))
 }
