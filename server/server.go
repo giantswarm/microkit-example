@@ -18,8 +18,8 @@ import (
 // Config represents the configuration used to create a new server object.
 type Config struct {
 	// Dependencies.
-	Logger  micrologger.Logger
-	Service *service.Service
+	MicroServerConfig microserver.Config
+	Service           *service.Service
 }
 
 // DefaultConfig provides a default configuration to create a new server object
@@ -27,8 +27,8 @@ type Config struct {
 func DefaultConfig() Config {
 	return Config{
 		// Dependencies.
-		Logger:  nil,
-		Service: nil,
+		MicroServerConfig: microserver.DefaultConfig(),
+		Service:           nil,
 	}
 }
 
@@ -39,7 +39,7 @@ func New(config Config) (microserver.Server, error) {
 	var middlewareCollection *middleware.Middleware
 	{
 		middlewareConfig := middleware.DefaultConfig()
-		middlewareConfig.Logger = config.Logger
+		middlewareConfig.Logger = config.MicroServerConfig.Logger
 		middlewareConfig.Service = config.Service
 		middlewareCollection, err = middleware.New(middlewareConfig)
 		if err != nil {
@@ -50,7 +50,7 @@ func New(config Config) (microserver.Server, error) {
 	var endpointCollection *endpoint.Endpoint
 	{
 		endpointConfig := endpoint.DefaultConfig()
-		endpointConfig.Logger = config.Logger
+		endpointConfig.Logger = config.MicroServerConfig.Logger
 		endpointConfig.Middleware = middlewareCollection
 		endpointConfig.Service = config.Service
 		endpointCollection, err = endpoint.New(endpointConfig)
@@ -59,17 +59,23 @@ func New(config Config) (microserver.Server, error) {
 		}
 	}
 
+	// Create our custom server.
 	newServer := &server{
 		// Dependencies.
-		endpoints: []microserver.Endpoint{
-			endpointCollection.Version,
-		},
-		logger: config.Logger,
+		logger: config.MicroServerConfig.Logger,
 
 		// Internals.
 		bootOnce:     sync.Once{},
+		config:       config.MicroServerConfig,
 		shutdownOnce: sync.Once{},
 	}
+
+	// Apply internals to the micro server config.
+	newServer.config.Endpoints = []microserver.Endpoint{
+		endpointCollection.Version,
+	}
+	newServer.config.ErrorEncoder = newServer.newErrorEncoder()
+	newServer.config.RequestFuncs = newServer.newRequestFuncs()
 
 	return newServer, nil
 }
@@ -82,6 +88,7 @@ type server struct {
 
 	// Internals.
 	bootOnce     sync.Once
+	config       microserver.Config
 	shutdownOnce sync.Once
 }
 
@@ -92,8 +99,15 @@ func (s *server) Boot() {
 	})
 }
 
-func (s *server) Endpoints() []microserver.Endpoint {
-	return s.endpoints
+func (s *server) Config() microserver.Config {
+	return s.config
+}
+
+func (s *server) Shutdown() {
+	s.shutdownOnce.Do(func() {
+		// Here goes your custom shutdown logic for your server/endpoint/middleware,
+		// if any.
+	})
 }
 
 // ErrorEncoder is a global error handler used for all endpoints. Errors
@@ -101,7 +115,7 @@ func (s *server) Endpoints() []microserver.Endpoint {
 // emitted. The underlying error defines the HTTP status code and the encoded
 // error message. The response is always a JSON object containing an error field
 // describing the error.
-func (s *server) ErrorEncoder() kithttp.ErrorEncoder {
+func (s *server) newErrorEncoder() kithttp.ErrorEncoder {
 	return func(ctx context.Context, err error, w http.ResponseWriter) {
 		switch e := err.(type) {
 		case kithttp.Error:
@@ -129,7 +143,7 @@ func (s *server) ErrorEncoder() kithttp.ErrorEncoder {
 	}
 }
 
-func (s *server) RequestFuncs() []kithttp.RequestFunc {
+func (s *server) newRequestFuncs() []kithttp.RequestFunc {
 	return []kithttp.RequestFunc{
 		func(ctx context.Context, r *http.Request) context.Context {
 			// Your custom logic to enrich the request context with request specific
@@ -137,11 +151,4 @@ func (s *server) RequestFuncs() []kithttp.RequestFunc {
 			return ctx
 		},
 	}
-}
-
-func (s *server) Shutdown() {
-	s.shutdownOnce.Do(func() {
-		// Here goes your custom shutdown logic for your server/endpoint/middleware,
-		// if any.
-	})
 }
