@@ -18,8 +18,10 @@ import (
 // Config represents the configuration used to create a new server object.
 type Config struct {
 	// Dependencies.
+	Service *service.Service
+
+	// Settings.
 	MicroServerConfig microserver.Config
-	Service           *service.Service
 }
 
 // DefaultConfig provides a default configuration to create a new server object
@@ -27,8 +29,10 @@ type Config struct {
 func DefaultConfig() Config {
 	return Config{
 		// Dependencies.
+		Service: nil,
+
+		// Settings.
 		MicroServerConfig: microserver.DefaultConfig(),
-		Service:           nil,
 	}
 }
 
@@ -83,8 +87,7 @@ func New(config Config) (microserver.Server, error) {
 // server manages the transport logic and endpoint registration.
 type server struct {
 	// Dependencies.
-	endpoints []microserver.Endpoint
-	logger    micrologger.Logger
+	logger micrologger.Logger
 
 	// Internals.
 	bootOnce     sync.Once
