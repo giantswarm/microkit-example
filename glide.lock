@@ -1,5 +1,5 @@
-hash: 75d38cd16962ab8012488cac8f2bee5b48d0a6ae260a9aac6ee568f16cbef413
-updated: 2017-02-13T19:39:03.346472611+01:00
+hash: dff557cabc665cf8e2dc3e9711ca8a8309209301f68ba5b23d72cc80f23a6317
+updated: 2017-02-14T11:03:49.895849254+01:00
 imports:
 - name: github.com/beorn7/perks
   version: 4c0e84591b9aa9e6dcfdf3e020114cd81f89d5f9
@@ -22,7 +22,7 @@ imports:
 - name: github.com/ghodss/yaml
   version: 73d445a93680fa1a78ae23a5839bad48f32ba1ee
 - name: github.com/giantswarm/microkit
-  version: e388ef3602747738b36e0c55ca46a2bc93a1f1e8
+  version: 761c06e15846e6a7e0976d12181a7cce6b559615
   subpackages:
   - command
   - command/daemon
@@ -109,7 +109,9 @@ imports:
   - internal/bitbucket.org/ww/goautoneg
   - model
 - name: github.com/prometheus/procfs
-  version: 1878d9fbb537119d24b21ca07effd591627cd160
+  version: 3c6d1cd72106fb2c83336c7766b365da0cf9574e
+  subpackages:
+  - xfs
 - name: github.com/spf13/afero
   version: 72b31426848c6ef12a7a8e216708cb0d1530f074
   subpackages:
@@ -142,7 +144,7 @@ imports:
   - lex/httplex
   - trace
 - name: golang.org/x/sys
-  version: aaabbdc969c3935a2a7f61efac801e7163c73a2a
+  version: e24f485414aeafb646f6fca458b0bf869c0880a1
   subpackages:
   - unix
 - name: golang.org/x/text

@@ -1,7 +1,7 @@
 package: github.com/giantswarm/microkit-example
 import:
 - package: github.com/giantswarm/microkit
-  version: tls
+  version: 761c06e15846e6a7e0976d12181a7cce6b559615
   subpackages:
   - command
   - logger
