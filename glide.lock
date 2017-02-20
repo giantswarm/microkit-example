@@ -1,12 +1,12 @@
-hash: dff557cabc665cf8e2dc3e9711ca8a8309209301f68ba5b23d72cc80f23a6317
-updated: 2017-02-14T11:03:49.895849254+01:00
+hash: 7acb3ba789961d67ff339218e9dd5edc894b37b75a137126af858fc633e838f0
+updated: 2017-02-20T12:56:21.058558347+01:00
 imports:
 - name: github.com/beorn7/perks
   version: 4c0e84591b9aa9e6dcfdf3e020114cd81f89d5f9
   subpackages:
   - quantile
 - name: github.com/coreos/etcd
-  version: 8ba2897a21e4fc51b298ca553d251318425f93ae
+  version: ac1c7eba21545c4ee025f2c340e143cacb53c754
   subpackages:
   - auth/authpb
   - client
@@ -22,12 +22,18 @@ imports:
 - name: github.com/ghodss/yaml
   version: 73d445a93680fa1a78ae23a5839bad48f32ba1ee
 - name: github.com/giantswarm/microkit
-  version: 761c06e15846e6a7e0976d12181a7cce6b559615
+  version: 1a406a702faf8f2312fdf2f83bf5b228510a01be
   subpackages:
   - command
   - command/daemon
+  - command/daemon/flag
+  - command/daemon/flag/config
+  - command/daemon/flag/server
+  - command/daemon/flag/server/listen
+  - command/daemon/flag/server/tls
   - command/version
   - error
+  - flag
   - logger
   - server
   - storage
@@ -65,7 +71,7 @@ imports:
   - runtime/internal
   - utilities
 - name: github.com/hashicorp/hcl
-  version: 372e8ddaa16fd67e371e9323807d056b799360af
+  version: 630949a3c5fa3c613328e1b8256052cbc2327c9b
   subpackages:
   - hcl/ast
   - hcl/parser
@@ -92,40 +98,40 @@ imports:
 - name: github.com/pelletier/go-buffruneio
   version: df1e16fde7fc330a0ca68167c23bf7ed6ac31d6d
 - name: github.com/pelletier/go-toml
-  version: c9506ee96398e7571356462217b9e24d6a628d71
+  version: 22139eb5469018e7374b3e7ef653de37ffb44f72
 - name: github.com/prometheus/client_golang
   version: c5b7fccd204277076155f10851dad72b76a49317
   subpackages:
   - prometheus
   - prometheus/promhttp
 - name: github.com/prometheus/client_model
-  version: fa8ad6fec33561be4280a8f0514318c79d7f6cb6
+  version: 6f3806018612930941127f2a7c6c453ba2c527d2
   subpackages:
   - go
 - name: github.com/prometheus/common
-  version: dd2f054febf4a6c00f2343686efb775948a8bff4
+  version: 49fee292b27bfff7f354ee0f64e1bc4850462edf
   subpackages:
   - expfmt
   - internal/bitbucket.org/ww/goautoneg
   - model
 - name: github.com/prometheus/procfs
-  version: 3c6d1cd72106fb2c83336c7766b365da0cf9574e
+  version: a1dba9ce8baed984a2495b658c82687f8157b98f
   subpackages:
   - xfs
 - name: github.com/spf13/afero
-  version: 72b31426848c6ef12a7a8e216708cb0d1530f074
+  version: 9be650865eab0c12963d8753212f4f9c66cdcf12
   subpackages:
   - mem
 - name: github.com/spf13/cast
   version: d1139bab1c07d5ad390a65e7305876b3c1a8370b
 - name: github.com/spf13/cobra
-  version: b5d8e8f46a2f829f755b6e33b454e25c61c935e1
+  version: ee4055870c2d5f7ce112642377e32c9929c3bbaf
 - name: github.com/spf13/jwalterweatherman
   version: fa7ca7e836cf3a8bb4ebf799f472c12d7e903d66
 - name: github.com/spf13/pflag
   version: 9ff6c6923cfffbcd502984b8e0c80539a94968b7
 - name: github.com/spf13/viper
-  version: 5ed0fc31f7f453625df314d8e66b9791e8d13003
+  version: 7538d73b4eb9511d85a9f1dfef202eeb8ac260f4
 - name: github.com/tylerb/graceful
   version: 4654dfbb6ad53cb5e27f37d99b02e16c1872fbbb
 - name: github.com/ugorji/go
@@ -144,11 +150,11 @@ imports:
   - lex/httplex
   - trace
 - name: golang.org/x/sys
-  version: e24f485414aeafb646f6fca458b0bf869c0880a1
+  version: 075e574b89e4c2d22f2286a7e2b919519c6f3547
   subpackages:
   - unix
 - name: golang.org/x/text
-  version: 06d6eba81293389cafdff7fca90d75592194b2d9
+  version: 85c29909967d7f171f821e7a42e7b7af76fb9598
   subpackages:
   - transform
   - unicode/norm
