@@ -1,7 +1,7 @@
 package: github.com/giantswarm/microkit-example
 import:
 - package: github.com/giantswarm/microkit
-  version: viper
+  version: 1a406a702faf8f2312fdf2f83bf5b228510a01be
   subpackages:
   - command
   - logger
