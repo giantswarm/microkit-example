@@ -1,14 +1,16 @@
+// Package server provides a server implementation to connect network transport
+// protocols and service business logic by defining server endpoints.
 package server
 
 import (
-	"encoding/json"
+	"context"
 	"net/http"
 	"sync"
 
-	micrologger "github.com/giantswarm/microkit/logger"
+	"github.com/giantswarm/microerror"
 	microserver "github.com/giantswarm/microkit/server"
+	"github.com/giantswarm/micrologger"
 	kithttp "github.com/go-kit/kit/transport/http"
-	"golang.org/x/net/context"
 
 	"github.com/giantswarm/microkit-example/server/endpoint"
 	"github.com/giantswarm/microkit-example/server/middleware"
@@ -47,7 +49,7 @@ func New(config Config) (microserver.Server, error) {
 		middlewareConfig.Service = config.Service
 		middlewareCollection, err = middleware.New(middlewareConfig)
 		if err != nil {
-			return nil, maskAny(err)
+			return nil, microerror.Mask(err)
 		}
 	}
 
@@ -59,11 +61,10 @@ func New(config Config) (microserver.Server, error) {
 		endpointConfig.Service = config.Service
 		endpointCollection, err = endpoint.New(endpointConfig)
 		if err != nil {
-			return nil, maskAny(err)
+			return nil, microerror.Mask(err)
 		}
 	}
 
-	// Create our custom server.
 	newServer := &server{
 		// Dependencies.
 		logger: config.MicroServerConfig.Logger,
@@ -79,12 +80,10 @@ func New(config Config) (microserver.Server, error) {
 		endpointCollection.Version,
 	}
 	newServer.config.ErrorEncoder = newServer.newErrorEncoder()
-	newServer.config.RequestFuncs = newServer.newRequestFuncs()
 
 	return newServer, nil
 }
 
-// server manages the transport logic and endpoint registration.
 type server struct {
 	// Dependencies.
 	logger micrologger.Logger
@@ -113,45 +112,11 @@ func (s *server) Shutdown() {
 	})
 }
 
-// ErrorEncoder is a global error handler used for all endpoints. Errors
-// received here are encoded by go-kit and express in which area the error was
-// emitted. The underlying error defines the HTTP status code and the encoded
-// error message. The response is always a JSON object containing an error field
-// describing the error.
 func (s *server) newErrorEncoder() kithttp.ErrorEncoder {
 	return func(ctx context.Context, err error, w http.ResponseWriter) {
-		switch e := err.(type) {
-		case kithttp.Error:
-			err = e.Err
-
-			switch e.Domain {
-			case kithttp.DomainEncode:
-				w.WriteHeader(http.StatusBadRequest)
-			case kithttp.DomainDecode:
-				w.WriteHeader(http.StatusBadRequest)
-			case kithttp.DomainDo:
-				// Your custom service errors go here.
-				w.WriteHeader(http.StatusBadRequest)
-			default:
-				w.WriteHeader(http.StatusInternalServerError)
-			}
-		default:
-			w.WriteHeader(http.StatusInternalServerError)
-		}
-
-		w.Header().Set("Content-Type", "application/json; charset=utf-8")
-		json.NewEncoder(w).Encode(map[string]interface{}{
-			"error": err.Error(),
-		})
-	}
-}
-
-func (s *server) newRequestFuncs() []kithttp.RequestFunc {
-	return []kithttp.RequestFunc{
-		func(ctx context.Context, r *http.Request) context.Context {
-			// Your custom logic to enrich the request context with request specific
-			// information goes here.
-			return ctx
-		},
+		rErr := err.(microserver.ResponseError)
+		rErr.SetCode(microserver.CodeInternalError)
+		rErr.SetMessage("An unexpected error occurred. Sorry for the inconvenience.")
+		w.WriteHeader(http.StatusInternalServerError)
 	}
 }

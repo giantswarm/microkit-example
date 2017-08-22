@@ -1,9 +1,8 @@
 package middleware
 
 import (
-	micrologger "github.com/giantswarm/microkit/logger"
+	"github.com/giantswarm/micrologger"
 
-	"github.com/giantswarm/microkit-example/server/middleware/version"
 	"github.com/giantswarm/microkit-example/service"
 )
 
@@ -26,27 +25,11 @@ func DefaultConfig() Config {
 
 // New creates a new configured middleware.
 func New(config Config) (*Middleware, error) {
-	var err error
-
-	var versionMiddleware *version.Middleware
-	{
-		versionConfig := version.DefaultConfig()
-		versionConfig.Logger = config.Logger
-		versionConfig.Service = config.Service
-		versionMiddleware, err = version.New(versionConfig)
-		if err != nil {
-			return nil, maskAny(err)
-		}
-	}
-
-	newMiddleware := &Middleware{
-		Version: versionMiddleware,
-	}
+	newMiddleware := &Middleware{}
 
 	return newMiddleware, nil
 }
 
 // Middleware is middleware collection.
 type Middleware struct {
-	Version *version.Middleware
 }

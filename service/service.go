@@ -4,7 +4,8 @@ package service
 import (
 	kitlog "github.com/go-kit/kit/log"
 
-	"github.com/giantswarm/microkit-example/service/version"
+	"github.com/giantswarm/microendpoint/service/version"
+	"github.com/giantswarm/microerror"
 )
 
 // Config represents the configuration used to create a new service.
@@ -42,8 +43,6 @@ func New(config Config) (*Service, error) {
 	{
 		versionConfig := version.DefaultConfig()
 
-		versionConfig.Logger = config.Logger
-
 		versionConfig.Description = config.Description
 		versionConfig.GitCommit = config.GitCommit
 		versionConfig.Name = config.Name
@@ -51,7 +50,7 @@ func New(config Config) (*Service, error) {
 
 		versionService, err = version.New(versionConfig)
 		if err != nil {
-			return nil, maskAny(err)
+			return nil, microerror.Mask(err)
 		}
 	}
 

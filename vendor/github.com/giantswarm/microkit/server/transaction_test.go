@@ -1,12 +1,11 @@
 package server
 
 import (
+	"context"
 	"net/http"
 	"net/http/httptest"
 	"strings"
 	"testing"
-
-	"golang.org/x/net/context"
 )
 
 func Test_Transaction_IDFormat(t *testing.T) {
@@ -257,7 +256,7 @@ func Test_Transaction_InvalidIDGiven(t *testing.T) {
 			t.Fatal("expected", http.StatusInternalServerError, "got", w.Code)
 		}
 
-		if !strings.Contains(w.Body.String(), "invalid transaction ID: does not match") {
+		if !strings.Contains(w.Body.String(), "does not match") {
 			t.Fatal("expected", "invalid transaction ID: does not match", "got", w.Body.String())
 		}
 	}

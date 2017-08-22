@@ -1,11 +1,14 @@
 package main
 
 import (
+	"fmt"
 	"os"
 
+	"github.com/giantswarm/microerror"
 	"github.com/giantswarm/microkit/command"
-	"github.com/giantswarm/microkit/logger"
 	microserver "github.com/giantswarm/microkit/server"
+	"github.com/giantswarm/micrologger"
+	"github.com/spf13/viper"
 
 	"github.com/giantswarm/microkit-example/server"
 	"github.com/giantswarm/microkit-example/service"
@@ -19,22 +22,29 @@ var (
 )
 
 func main() {
+	err := mainWithError()
+	if err != nil {
+		panic(fmt.Sprintf("%#v\n", microerror.Mask(err)))
+	}
+}
+
+func mainWithError() error {
 	var err error
 
 	// Create a new logger which is used by all packages.
-	var newLogger logger.Logger
+	var newLogger micrologger.Logger
 	{
-		loggerConfig := logger.DefaultConfig()
+		loggerConfig := micrologger.DefaultConfig()
 		loggerConfig.IOWriter = os.Stdout
-		newLogger, err = logger.New(loggerConfig)
+		newLogger, err = micrologger.New(loggerConfig)
 		if err != nil {
-			panic(err)
+			return microerror.Mask(err)
 		}
 	}
 
 	// We define a server factory to create the custom server once all command
 	// line flags are parsed and all microservice configuration is storted out.
-	newServerFactory := func() microserver.Server {
+	newServerFactory := func(v *viper.Viper) microserver.Server {
 		// Create a new custom service which implements business logic.
 		var newService *service.Service
 		{
@@ -86,9 +96,11 @@ func main() {
 
 		newCommand, err = command.New(commandConfig)
 		if err != nil {
-			panic(err)
+			return microerror.Mask(err)
 		}
 	}
 
 	newCommand.CobraCommand().Execute()
+
+	return nil
 }
