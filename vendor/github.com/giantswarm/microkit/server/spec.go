@@ -50,7 +50,7 @@ type Server interface {
 // propagate specific response information in error cases.
 type ResponseError interface {
 	// Code returns the code being tracked using SetCode. If this code is not set
-	// using SetCode it defaults to CodeUnknownError.
+	// using SetCode it defaults to CodeInternalError.
 	Code() string
 	// Error returns the message of the underlying error.
 	Error() string
@@ -58,11 +58,6 @@ type ResponseError interface {
 	// is not set using SetMessage it defaults to the error message of the
 	// underlying error.
 	Message() string
-	// IsEndpoint checks whether the underlying error originates from an endpoints
-	// business logic. This includes decoder and encoder errors. In case
-	// IsEndpoint returns false, something unexpected happened and the current
-	// error should probably be handled as internal server error.
-	IsEndpoint() bool
 	// SetCode tracks the given response code for the current response error. The
 	// given response code will be used for logging, instrumentation and response
 	// creation.
@@ -81,6 +76,9 @@ type ResponseWriter interface {
 	// BodyBuffer returns the buffer which is used to track the bytes being
 	// written to the response.
 	BodyBuffer() *bytes.Buffer
+	// HasWritten expresses whether the underlying response writer has already
+	// written anything to the response body.
+	HasWritten() bool
 	// Header is only a wrapper around http.ResponseWriter.Header.
 	Header() http.Header
 	// StatusCode returns either the default status code of the one that was

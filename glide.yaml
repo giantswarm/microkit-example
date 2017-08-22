@@ -1,18 +1,11 @@
 package: github.com/giantswarm/microkit-example
 import:
 - package: github.com/giantswarm/microkit
-  version: 1a406a702faf8f2312fdf2f83bf5b228510a01be
-  subpackages:
-  - command
-  - logger
-  - server
-- package: github.com/go-kit/kit
-  version: ~0.3.0
-  subpackages:
-  - endpoint
-  - log
-  - transport/http
-- package: github.com/juju/errgo
+  version: master
+- package: github.com/giantswarm/microendpoint
+  version: master
+- package: github.com/giantswarm/microerror
+  version: master
+- package: github.com/giantswarm/micrologger
+  version: master
 - package: golang.org/x/net
-  subpackages:
-  - context

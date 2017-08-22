@@ -2,26 +2,27 @@
 package command
 
 import (
+	"github.com/giantswarm/micrologger"
 	"github.com/spf13/cobra"
+	"github.com/spf13/viper"
 
+	"github.com/giantswarm/microerror"
 	"github.com/giantswarm/microkit/command/daemon"
 	"github.com/giantswarm/microkit/command/version"
-	microerror "github.com/giantswarm/microkit/error"
-	"github.com/giantswarm/microkit/logger"
-	"github.com/giantswarm/microkit/server"
 )
 
 // Config represents the configuration used to create a new root command.
 type Config struct {
 	// Dependencies.
-	Logger        logger.Logger
-	ServerFactory func() server.Server
+	Logger        micrologger.Logger
+	ServerFactory daemon.ServerFactory
 
 	// Settings.
 	Description string
 	GitCommit   string
 	Name        string
 	Source      string
+	Viper       *viper.Viper
 }
 
 // DefaultConfig provides a default configuration to create a new root command
@@ -37,6 +38,7 @@ func DefaultConfig() Config {
 		GitCommit:   "",
 		Name:        "",
 		Source:      "",
+		Viper:       viper.New(),
 	}
 }
 
@@ -50,10 +52,11 @@ func New(config Config) (Command, error) {
 
 		daemonConfig.Logger = config.Logger
 		daemonConfig.ServerFactory = config.ServerFactory
+		daemonConfig.Viper = config.Viper
 
 		daemonCommand, err = daemon.New(daemonConfig)
 		if err != nil {
-			return nil, microerror.MaskAny(err)
+			return nil, microerror.Mask(err)
 		}
 	}
 
@@ -68,7 +71,7 @@ func New(config Config) (Command, error) {
 
 		versionCommand, err = version.New(versionConfig)
 		if err != nil {
-			return nil, microerror.MaskAny(err)
+			return nil, microerror.Mask(err)
 		}
 	}
 

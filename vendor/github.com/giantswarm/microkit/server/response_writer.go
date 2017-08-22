@@ -4,7 +4,7 @@ import (
 	"bytes"
 	"net/http"
 
-	microerror "github.com/giantswarm/microkit/error"
+	"github.com/giantswarm/microerror"
 )
 
 // ResponseWriterConfig represents the configuration used to create a new
@@ -31,16 +31,19 @@ func DefaultResponseWriterConfig() ResponseWriterConfig {
 func NewResponseWriter(config ResponseWriterConfig) (ResponseWriter, error) {
 	// Settings.
 	if config.BodyBuffer == nil {
-		return nil, microerror.MaskAnyf(invalidConfigError, "body buffer must not be empty")
+		return nil, microerror.Maskf(invalidConfigError, "body buffer must not be empty")
 	}
 	if config.ResponseWriter == nil {
-		return nil, microerror.MaskAnyf(invalidConfigError, "response writer must not be empty")
+		return nil, microerror.Maskf(invalidConfigError, "response writer must not be empty")
 	}
 	if config.StatusCode == 0 {
-		return nil, microerror.MaskAnyf(invalidConfigError, "status code must not be empty")
+		return nil, microerror.Maskf(invalidConfigError, "status code must not be empty")
 	}
 
 	newResponseWriter := &responseWriter{
+		// Internals.
+		hasWritten: false,
+
 		// Settings.
 		bodyBuffer:     config.BodyBuffer,
 		responseWriter: config.ResponseWriter,
@@ -51,6 +54,9 @@ func NewResponseWriter(config ResponseWriterConfig) (ResponseWriter, error) {
 }
 
 type responseWriter struct {
+	// Internals.
+	hasWritten bool
+
 	// Settings.
 	bodyBuffer     *bytes.Buffer
 	responseWriter http.ResponseWriter
@@ -59,6 +65,10 @@ type responseWriter struct {
 
 func (rw *responseWriter) BodyBuffer() *bytes.Buffer {
 	return rw.bodyBuffer
+}
+
+func (rw *responseWriter) HasWritten() bool {
+	return rw.hasWritten
 }
 
 func (rw *responseWriter) Header() http.Header {
@@ -70,9 +80,11 @@ func (rw *responseWriter) StatusCode() int {
 }
 
 func (rw *responseWriter) Write(b []byte) (int, error) {
+	rw.hasWritten = true
+
 	_, err := rw.bodyBuffer.Write(b)
 	if err != nil {
-		return 0, microerror.MaskAny(err)
+		return 0, microerror.Mask(err)
 	}
 
 	return rw.responseWriter.Write(b)

@@ -1,11 +1,9 @@
 package validator
 
 import (
-	"encoding/json"
 	"fmt"
 
-	microerror "github.com/giantswarm/microkit/error"
-	"github.com/juju/errgo"
+	"github.com/giantswarm/microerror"
 )
 
 // UnknownAttributeError indicates there was an error due to unknown attributes
@@ -28,7 +26,7 @@ func (e UnknownAttributeError) Error() string {
 
 // IsUnknownAttribute asserts UnknownAttributeError.
 func IsUnknownAttribute(err error) bool {
-	_, ok := errgo.Cause(err).(UnknownAttributeError)
+	_, ok := microerror.Cause(err).(UnknownAttributeError)
 	return ok
 }
 
@@ -37,24 +35,7 @@ func IsUnknownAttribute(err error) bool {
 // type UnknownAttributeError. Therefore IsUnknownAttribute should always be
 // used to verify the safe execution of ToUnknownAttribute beforehand.
 func ToUnknownAttribute(err error) UnknownAttributeError {
-	return errgo.Cause(err).(UnknownAttributeError)
-}
-
-// StructToMap is a helper method to convert an expected request data structure
-// in the correctly formatted type to UnknownAttributes.
-func StructToMap(s interface{}) (map[string]interface{}, error) {
-	b, err := json.Marshal(s)
-	if err != nil {
-		return nil, microerror.MaskAny(err)
-	}
-
-	var m map[string]interface{}
-	err = json.Unmarshal(b, &m)
-	if err != nil {
-		return nil, microerror.MaskAny(err)
-	}
-
-	return m, nil
+	return microerror.Cause(err).(UnknownAttributeError)
 }
 
 // UnknownAttribute takes an arbitrary map and a map obtaining some expected
@@ -64,10 +45,10 @@ func StructToMap(s interface{}) (map[string]interface{}, error) {
 // contains fields which are not available in expected, an UnknownAttributeError
 // is returned.
 func UnknownAttribute(received, expected map[string]interface{}) error {
-	for r, _ := range received {
+	for r := range received {
 		var found bool
 
-		for e, _ := range expected {
+		for e := range expected {
 			if e == r {
 				found = true
 				break
@@ -83,7 +64,7 @@ func UnknownAttribute(received, expected map[string]interface{}) error {
 			message:   fmt.Sprintf("unknown attribute: %s", r),
 		}
 
-		return microerror.MaskAny(err)
+		return microerror.Mask(err)
 	}
 
 	return nil
