@@ -2,8 +2,7 @@
 package service
 
 import (
-	kitlog "github.com/go-kit/kit/log"
-
+	"github.com/giantswarm/micrologger"
 	"github.com/giantswarm/microendpoint/service/version"
 	"github.com/giantswarm/microerror"
 )
@@ -11,7 +10,7 @@ import (
 // Config represents the configuration used to create a new service.
 type Config struct {
 	// Dependencies.
-	Logger kitlog.Logger
+	Logger micrologger.Logger
 
 	// Settings.
 	Description string
