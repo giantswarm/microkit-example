@@ -1,4 +1,4 @@
-[![CircleCI](https://circleci.com/gh/giantswarm/microkit-example.svg?&style=shield&circle-token=9fae6a21ee7e461f9d2ac7328dcae8b430a3163b)](https://circleci.com/gh/giantswarm/microkit-example)
+[![CircleCI](https://dl.circleci.com/status-badge/img/gh/giantswarm/microkit-example/tree/master.svg?style=svg)](https://dl.circleci.com/status-badge/redirect/gh/giantswarm/microkit-example/tree/master)
 
 # Microkit Example
 
